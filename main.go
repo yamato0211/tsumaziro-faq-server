@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -221,11 +222,13 @@ func main() {
 		}
 
 		prompt := req.Prompt
-		userID, ok := r.Context().Value("user_id").(string)
-		if !ok {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+		// userID, ok := r.Context().Value("user_id").(string)
+		// if !ok {
+		// 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		// 	return
+		// }
+
+		userID := fmt.Sprintf("%d", rand.Intn(1000000))
 
 		output, err := client.InvokeAgent(context.Background(), &bedrockagentruntime.InvokeAgentInput{
 			InputText:    aws.String(prompt),
