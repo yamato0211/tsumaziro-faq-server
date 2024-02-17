@@ -1,0 +1,28 @@
+package config
+
+import (
+	"os"
+
+	"github.com/joho/godotenv"
+)
+
+type DBConfig struct {
+	DBHost string
+	DBName string
+	DBUser string
+	DBPass string
+	DBPort string
+}
+
+func NewDBConfig() *DBConfig {
+	godotenv.Load()
+
+	cfg := &DBConfig{
+		DBHost: os.Getenv("DB_HOST"),
+		DBName: os.Getenv("DB_DATABASE"),
+		DBUser: os.Getenv("DB_USERNAME"),
+		DBPass: os.Getenv("DB_PASSWORD"),
+		DBPort: os.Getenv("DB_PORT"),
+	}
+	return cfg
+}
