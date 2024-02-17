@@ -71,7 +71,7 @@ func findAnchors(node *html.Node, collection *[]*Anchor) {
 	}
 }
 
-func CrawlKnowledge(url, bucketName, objectKey string) error {
+func CrawlKnowledge(url, bucketName, objectKey string, s3Client *s3.Client) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func CrawlKnowledge(url, bucketName, objectKey string) error {
 		content += html.Body + "¥n"
 	}
 	fileContent := strings.NewReader(content)
-	bucketBasics := BucketBasics{}
+	bucketBasics := BucketBasics{S3Client: s3Client}
 	if err := bucketBasics.UploadFile(bucketName, objectKey, fileContent); err != nil {
 		return err
 	}

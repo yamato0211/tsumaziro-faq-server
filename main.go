@@ -19,7 +19,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime"
-	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime/types"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 
 	"github.com/yamato0211/tsumaziro-faq-server/batch"
 	"github.com/yamato0211/tsumaziro-faq-server/db/model"
@@ -123,7 +124,10 @@ func main() {
 		return
 	}
 
-	client := bedrockagentruntime.NewFromConfig(sdkConfig)
+	client := bedrockruntime.NewFromConfig(sdkConfig)
+	modelId := "anthropic.claude-v2"
+	prefix := "Human: "
+	postfix := "\n\nAssistant:"
 
 	mux := http.NewServeMux()
 
@@ -156,7 +160,7 @@ func main() {
 					log.Println("Error: ", err)
 				}
 			case data := <-crawlData:
-				if err := batch.CrawlKnowledge(data.URL, BucketName, data.SubDomain); err != nil {
+				if err := batch.CrawlKnowledge(data.URL, BucketName, data.SubDomain, s3Client); err != nil {
 					log.Println("Error: ", err)
 				}
 			}
