@@ -45,31 +45,26 @@ func BatchGenerateFAQ(db *db.DB, ctx context.Context) error {
 	for _, account := range accounts {
 		titles, err := getPageTitles(account.ProjectID)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		var faqs []FAQ
 		for _, title := range titles {
 			pageFaqs, err := convertPageToFAQs(account.ProjectID, title)
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			faqs = append(faqs, pageFaqs...)
 		}
 		marshaled, err := json.Marshal(faqs)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 		account.Faqs = marshaled
 		account.UpdatedAt = time.Now()
-	}
-	_, err := db.NewUpdate().
-		Model(&accounts).
-		Column("faqs", "updated_at").
-		Bulk().
-		Exec(ctx)
-	if err != nil {
-		return errors.WithStack(err)
+		if _, err = db.DB.NewUpdate().Model(account).Where("id = ?", account.ID).Exec(ctx); err != nil {
+			return errors.WithStack(err)
+		}
 	}
 	return nil
 }
