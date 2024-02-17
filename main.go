@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -17,7 +18,8 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime/types"
 
 	"github.com/yamato0211/tsumaziro-faq-server/batch"
 	"github.com/yamato0211/tsumaziro-faq-server/db/model"
@@ -121,10 +123,7 @@ func main() {
 		return
 	}
 
-	client := bedrockruntime.NewFromConfig(sdkConfig)
-	modelId := "anthropic.claude-v2"
-	prefix := "Human: "
-	postfix := "\n\nAssistant:"
+	client := bedrockagentruntime.NewFromConfig(sdkConfig)
 
 	mux := http.NewServeMux()
 
@@ -268,58 +267,51 @@ func main() {
 	})
 
 	bedrockHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := BedrockRequest{Model: modelId}
+		req := BedrockRequest{}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		wrappedPrompt := prefix + req.Prompt + postfix
+		prompt := req.Prompt
+		// userID, ok := r.Context().Value("user_id").(string)
+		// if !ok {
+		// 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		// 	return
+		// }
 
-		request := ClaudeRequest{
-			Prompt:            wrappedPrompt,
-			MaxTokensToSample: 200,
-		}
+		userID := fmt.Sprintf("%d", rand.Intn(1000000))
 
-		body, err := json.Marshal(request)
-		if err != nil {
-			log.Println("Couldn't marshal the request: ", err)
-			http.Error(w, "Bad Request", http.StatusBadRequest)
-			return
-		}
-
-		result, err := client.InvokeModel(context.Background(), &bedrockruntime.InvokeModelInput{
-			ModelId:     aws.String(req.Model),
-			ContentType: aws.String("application/json"),
-			Body:        body,
+		output, err := client.InvokeAgent(context.Background(), &bedrockagentruntime.InvokeAgentInput{
+			InputText:    aws.String(prompt),
+			AgentId:      aws.String("W5PUPQIIS8"),
+			AgentAliasId: aws.String("GLYSWGXVOT"),
+			SessionId:    aws.String(userID),
 		})
-
 		if err != nil {
-			errMsg := err.Error()
-			if strings.Contains(errMsg, "no such host") {
-				fmt.Printf("Error: The Bedrock service is not available in the selected region. Please double-check the service availability for your region at https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/.\n")
-			} else if strings.Contains(errMsg, "Could not resolve the foundation model") {
-				fmt.Printf("Error: Could not resolve the foundation model from model identifier: \"%v\". Please verify that the requested model exists and is accessible within the specified region.\n", modelId)
-			} else {
-				fmt.Printf("Error: Couldn't invoke Anthropic Claude. Here's why: %v\n", err)
-			}
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var response ClaudeResponse
+		text := ""
+		for event := range output.GetStream().Events() {
+			switch v := event.(type) {
+			case *types.ResponseStreamMemberChunk:
+				text += string(v.Value.Bytes)
 
-		err = json.Unmarshal(result.Body, &response)
+			case *types.UnknownUnionMember:
+				fmt.Println("unknown tag:", v.Tag)
 
-		if err != nil {
-			log.Fatal("failed to unmarshal", err)
+			default:
+				fmt.Println("union is nil or unknown type")
+			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
 		res := BedrockResponse{
-			Completion: response.Completion,
+			Completion: text,
 		}
 		json.NewEncoder(w).Encode(res)
 	})

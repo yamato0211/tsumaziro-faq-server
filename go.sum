@@ -36,6 +36,8 @@ github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.0 h1:TkbRExyKSVHELwG9gz2+gql37jje
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.0/go.mod h1:T3/9xMKudHhnj8it5EqIrhvv11tVZqWYkKcot+BFStc=
 github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.6.0 h1:wadWhxBzCqrFV4PZAnQ1sutcD5PYSjP7rHCySTGJ8M8=
 github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.6.0/go.mod h1:6HA1cz0fIWauB+dyK9tIn4bK1UlPKNs+Bj4ynV4KLi4=
+github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime v1.2.0 h1:Y2VcVwtXQY9w8kg2z1o2oHsX2bCNygDS+1gf63qTUWk=
+github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime v1.2.0/go.mod h1:fwfZ6qjHqoJdOzarrJlWtgtY/ecryq2Wjp1vmMMwAzc=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.0 h1:a33HuFlO0KsveiP90IUJh8Xr/cx9US2PqkSroaLc+o8=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.0/go.mod h1:SxIkWpByiGbhbHYTo9CMTUnx2G4p4ZQMrDPcRRy//1c=
 github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.0 h1:UiSyK6ent6OKpkMJN3+k5HZ4sk4UfchEaaW5wv7SblQ=
