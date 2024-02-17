@@ -1,14 +1,17 @@
 package batch
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
+
+	"github.com/yamato0211/tsumaziro-faq-server/db/model"
+	"github.com/yamato0211/tsumaziro-faq-server/pkg/db"
 )
 
 type Project struct {
@@ -30,34 +33,44 @@ type FAQ struct {
 
 const QuestionTextPrefix = "? "
 
-func BatchGenerateFAQ() {
-	projectName := os.Getenv("SCRAPBOX_PROJECT_NAME")
-	faqsFileName := os.Getenv("FAQS_FILE_NAME")
-	dataDirPath, err := filepath.Abs(filepath.Join("..", "..", "data"))
-	if err != nil {
-		panic(err)
+func BatchGenerateFAQ(db *db.DB, ctx context.Context) error {
+	var accounts []*model.Account
+	if err := db.DB.NewSelect().Model((*model.Account)(nil)).Scan(ctx, &accounts); err != nil {
+		return err
 	}
-	faqsFilePath := filepath.Join(dataDirPath, faqsFileName)
+	fmt.Println("accounts")
+	fmt.Println(accounts)
 
-	titles, err := getPageTitles(projectName)
-	if err != nil {
-		panic(err)
-	}
-
-	var faqs []FAQ
-	for _, title := range titles {
-		pageFaqs, err := convertPageToFAQs(projectName, title)
+	for _, account := range accounts {
+		titles, err := getPageTitles(account.ProjectID)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		faqs = append(faqs, pageFaqs...)
-	}
 
-	err = storageFaqs(faqs, faqsFilePath)
-	if err != nil {
-		panic(err)
+		var faqs []FAQ
+		for _, title := range titles {
+			pageFaqs, err := convertPageToFAQs(account.ProjectID, title)
+			if err != nil {
+				return err
+			}
+			faqs = append(faqs, pageFaqs...)
+		}
+		marshaled, err := json.Marshal(faqs)
+		if err != nil {
+			return err
+		}
+		account.Faqs = marshaled
+		account.UpdatedAt = time.Now()
 	}
-	fmt.Println("generate faqs successfully!")
+	_, err := db.NewUpdate().
+		Model(&accounts).
+		Column("faqs", "updated_at").
+		Bulk().
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getPageTitles(projectName string) ([]string, error) {
@@ -151,15 +164,4 @@ func generateCombinations(optionsList [][]string) [][]string {
 	}
 	combine(optionsList, 0, []string{})
 	return result
-}
-
-func storageFaqs(faqs []FAQ, filePath string) error {
-	data, err := json.Marshal(faqs)
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
-		return err
-	}
-	return nil
 }

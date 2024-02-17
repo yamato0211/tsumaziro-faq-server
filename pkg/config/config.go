@@ -15,6 +15,10 @@ type DBConfig struct {
 	UseTLS string
 }
 
+type FirebaseConfig struct {
+	FirebaseSecret string
+}
+
 func NewDBConfig() *DBConfig {
 	godotenv.Load()
 
@@ -26,5 +30,15 @@ func NewDBConfig() *DBConfig {
 		DBPort: os.Getenv("DB_PORT"),
 		UseTLS: os.Getenv("DB_USE_TLS"),
 	}
+	return cfg
+}
+
+func NewFirebaseConfig() *FirebaseConfig {
+	godotenv.Load()
+
+	cfg := &FirebaseConfig{
+		FirebaseSecret: os.Getenv("FIREBASE_SECRET"),
+	}
+
 	return cfg
 }
