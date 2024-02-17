@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/cors"
+
 	"firebase.google.com/go/auth"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -280,8 +282,11 @@ func main() {
 		fmt.Fprint(w, "Hello, world!")
 	})))
 
+	c := cors.Default()
+	corsMux := c.Handler(mux)
+
 	log.Println("listen and serve ... on port 8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", corsMux); err != nil {
 		log.Fatal(err)
 	}
 }
