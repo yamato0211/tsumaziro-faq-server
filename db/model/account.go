@@ -26,8 +26,8 @@ func (a *Account) String() string {
 	return fmt.Sprintf("Account<%s %s %s %s %s>", a.ID, a.Name, a.Email, a.ProjectID, a.FirebaseID)
 }
 
-func Migrate(db *db.DB) error {
-	if _, err := db.NewCreateTable().Model(&Account{}).Exec(context.Background()); err != nil {
+func MigrateAccount(db *db.DB) error {
+	if _, err := db.NewCreateTable().Model(&Account{}).IfNotExists().Exec(context.Background()); err != nil {
 		return err
 	}
 	return nil
