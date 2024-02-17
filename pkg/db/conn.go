@@ -30,12 +30,14 @@ func NewMySQLConnector(cfg *config.DBConfig) *DB {
 }
 
 func mysqlConnDSN(cfg *config.DBConfig) string {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&tls=%s",
 		cfg.DBUser,
 		cfg.DBPass,
 		cfg.DBHost,
 		cfg.DBPort,
 		cfg.DBName,
+		cfg.UseTLS,
 	)
+	fmt.Println(dsn)
 	return dsn
 }
