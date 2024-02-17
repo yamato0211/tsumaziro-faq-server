@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	BucketName = "ottottottotto"
+	BucketName   = "ottottottotto"
+	htmlFileName = "index.html"
 )
 
 type ClaudeRequest struct {
@@ -158,7 +159,8 @@ func main() {
 					log.Println("Error: ", err)
 				}
 			case data := <-crawlData:
-				if err := batch.CrawlKnowledge(data.URL, BucketName, data.SubDomain, s3Client); err != nil {
+				objectKey := data.SubDomain + "/" + htmlFileName
+				if err := batch.CrawlKnowledge(data.URL, BucketName, objectKey, s3Client); err != nil {
 					log.Println("Error: ", err)
 				}
 			}
