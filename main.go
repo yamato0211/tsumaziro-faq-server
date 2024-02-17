@@ -25,6 +25,10 @@ import (
 	connector "github.com/yamato0211/tsumaziro-faq-server/pkg/db"
 )
 
+const (
+	BucketName = "ottottottotto"
+)
+
 type ClaudeRequest struct {
 	Prompt            string `json:"prompt"`
 	MaxTokensToSample int    `json:"max_tokens_to_sample"`
@@ -50,6 +54,20 @@ type GetTitleRequest struct {
 
 type ScrapBoxResponse struct {
 	Descriptions []string `json:"descriptions"`
+}
+
+type CreateAccountRequest struct {
+	SubDomain  string `json:"sub_domain"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	FirebaseID string `json:"firebase_id"`
+	ProjectID  string `json:"project_id"`
+	URL        string `json:"url"`
+}
+
+type CrawlData struct {
+	SubDomain string `json:"sub_domain"`
+	URL       string `json:"url"`
 }
 
 func NewAuthMiddelware(fc *auth.Client) func(http.HandlerFunc) http.HandlerFunc {
@@ -123,6 +141,7 @@ func main() {
 
 	ticker := time.NewTicker(5 * time.Minute)
 	done := make(chan bool)
+	crawlData := make(chan CrawlData)
 
 	defer func() {
 		done <- true
@@ -135,6 +154,10 @@ func main() {
 				return
 			case <-ticker.C:
 				if err := batch.BatchGenerateFAQ(db, context.Background()); err != nil {
+					log.Println("Error: ", err)
+				}
+			case data := <-crawlData:
+				if err := batch.CrawlKnowledge(data.URL, BucketName, data.SubDomain); err != nil {
 					log.Println("Error: ", err)
 				}
 			}
@@ -215,6 +238,35 @@ func main() {
 		}
 	})
 
+	createAccountHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req CreateAccountRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		account := &model.Account{
+			ID:         req.SubDomain,
+			Name:       req.Name,
+			Email:      req.Email,
+			ProjectID:  req.ProjectID,
+			FirebaseID: req.FirebaseID,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+		}
+		if _, err := db.DB.NewInsert().Model(account).Exec(r.Context()); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		crawlData <- CrawlData{
+			SubDomain: req.SubDomain,
+			URL:       req.URL,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+	})
+
 	bedrockHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		req := BedrockRequest{Model: modelId}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -275,6 +327,8 @@ func main() {
 	mux.HandleFunc("GET /faq", subDomainMiddleware(faqHandler))
 
 	mux.HandleFunc("POST /faq", subDomainMiddleware(getTitleHandler))
+
+	mux.HandleFunc("POST /account", createAccountHandler)
 
 	mux.HandleFunc("POST /bedrock", subDomainMiddleware((bedrockHandler)))
 
