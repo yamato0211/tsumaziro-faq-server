@@ -13,7 +13,7 @@ func main() {
 	if _, err := d.DB.NewDropTable().Model(&model.Account{}).Exec(context.TODO()); err != nil {
 		panic(err)
 	}
-	if err := model.Migrate(d); err != nil {
+	if _, err := d.DB.NewDropTable().Model(&model.Model{}).Exec(context.TODO()); err != nil {
 		panic(err)
 	}
 }
