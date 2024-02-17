@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagentruntime/types"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/yamato0211/tsumaziro-faq-server/batch"
 	"github.com/yamato0211/tsumaziro-faq-server/db/model"
@@ -124,6 +125,7 @@ func main() {
 	}
 
 	client := bedrockagentruntime.NewFromConfig(sdkConfig)
+	s3Client := s3.NewFromConfig(sdkConfig)
 
 	mux := http.NewServeMux()
 
@@ -156,7 +158,7 @@ func main() {
 					log.Println("Error: ", err)
 				}
 			case data := <-crawlData:
-				if err := batch.CrawlKnowledge(data.URL, BucketName, data.SubDomain); err != nil {
+				if err := batch.CrawlKnowledge(data.URL, BucketName, data.SubDomain, s3Client); err != nil {
 					log.Println("Error: ", err)
 				}
 			}
