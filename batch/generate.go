@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/yamato0211/tsumaziro-faq-server/db/model"
 	"github.com/yamato0211/tsumaziro-faq-server/pkg/db"
 )
@@ -36,7 +37,7 @@ const QuestionTextPrefix = "? "
 func BatchGenerateFAQ(db *db.DB, ctx context.Context) error {
 	var accounts []*model.Account
 	if err := db.DB.NewSelect().Model((*model.Account)(nil)).Scan(ctx, &accounts); err != nil {
-		return err
+		errors.WithStack(err)
 	}
 	fmt.Println("accounts")
 	fmt.Println(accounts)
@@ -68,7 +69,7 @@ func BatchGenerateFAQ(db *db.DB, ctx context.Context) error {
 		Bulk().
 		Exec(ctx)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	return nil
 }
