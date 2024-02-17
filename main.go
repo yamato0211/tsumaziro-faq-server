@@ -121,7 +121,7 @@ func main() {
 
 	subDomainMiddleware := NewSubDomainMiddelware()
 
-	ticker := time.NewTicker(15 * time.Minute)
+	ticker := time.NewTicker(5 * time.Minute)
 	done := make(chan bool)
 
 	defer func() {

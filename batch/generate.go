@@ -62,7 +62,7 @@ func BatchGenerateFAQ(db *db.DB, ctx context.Context) error {
 		}
 		account.Faqs = marshaled
 		account.UpdatedAt = time.Now()
-		if _, err = db.DB.NewUpdate().Model(account).Where("id = ?", account.ID).Exec(ctx); err != nil {
+		if _, err = db.DB.NewUpdate().Model(account).WherePK().Exec(ctx); err != nil {
 			return errors.WithStack(err)
 		}
 	}
