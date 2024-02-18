@@ -216,13 +216,15 @@ func main() {
 			http.Error(w, "Not Found Sub Domain User: "+err.Error(), http.StatusNotFound)
 			return
 		}
+		fmt.Println("account: ", subDomain)
+
 		var req GetTitleRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Println("Status Bad Request: ", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		resp, err := http.Get("https://scrapbox.io/api/pages/" + subDomain + "/" + req.PageTitle)
+		resp, err := http.Get("https://scrapbox.io/api/pages/" + account.ProjectID + "/" + req.PageTitle)
 		if err != nil {
 			log.Println("Internal server error: ", err)
 			http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
