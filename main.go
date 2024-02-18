@@ -331,7 +331,7 @@ func main() {
 		fmt.Fprint(w, "Hello, world!")
 	})))
 
-	c := cors.Default()
+	c := cors.AllowAll()
 	corsMux := c.Handler(mux)
 
 	log.Println("listen and serve ... on port 8080")
