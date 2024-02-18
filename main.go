@@ -105,7 +105,7 @@ func NewSubDomainMiddelware() func(http.HandlerFunc) http.HandlerFunc {
 			}
 			splits := strings.Split(r.Host, ".")
 			subDomain := splits[0]
-			log.Println("subDomain: ", subDomain)
+			// log.Println("subDomain: ", subDomain)
 			ctx := context.WithValue(r.Context(), "sub_domain", subDomain)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -170,6 +170,7 @@ func main() {
 	faqHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// subDomain, ok := r.Context().Value("sub_domain").(string)
 		subDomain := r.PathValue("id")
+		log.Println("subDomain: ", subDomain)
 		// if !ok {
 		// 	log.Println("Internal server error: sub_domain type is not string")
 		// 	http.Error(w, "Internal server error: sub_domain type is not string", http.StatusInternalServerError)
