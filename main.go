@@ -141,12 +141,13 @@ func main() {
 	}(db)
 
 	faqHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		subDomain, ok := r.Context().Value("sub_domain").(string)
-		if !ok {
-			log.Println("Internal server error: sub_domain type is not string")
-			http.Error(w, "Internal server error: sub_domain type is not string", http.StatusInternalServerError)
-			return
-		}
+		// subDomain, ok := r.Context().Value("sub_domain").(string)
+		subDomain := r.PathValue("id")
+		// if !ok {
+		// 	log.Println("Internal server error: sub_domain type is not string")
+		// 	http.Error(w, "Internal server error: sub_domain type is not string", http.StatusInternalServerError)
+		// 	return
+		// }
 		if subDomain == "" {
 			log.Println("Not Found Sub Domain")
 			http.Error(w, "Not Found Sub Domain", http.StatusNotFound)
@@ -168,12 +169,13 @@ func main() {
 	})
 
 	getTitleHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		subDomain, ok := r.Context().Value("sub_domain").(string)
-		if !ok {
-			log.Println("Internal server error: sub_domain type is not string")
-			http.Error(w, "Internal server error: sub_domain type is not string", http.StatusInternalServerError)
-			return
-		}
+		// subDomain, ok := r.Context().Value("sub_domain").(string)
+		subDomain := r.PathValue("id")
+		// if !ok {
+		// 	log.Println("Internal server error: sub_domain type is not string")
+		// 	http.Error(w, "Internal server error: sub_domain type is not string", http.StatusInternalServerError)
+		// 	return
+		// }
 		if subDomain == "" {
 			log.Println("Not Found Sub Domain")
 			http.Error(w, "Not Found Sub Domain", http.StatusNotFound)
@@ -222,11 +224,6 @@ func main() {
 		}
 
 		prompt := req.Prompt
-		// userID, ok := r.Context().Value("user_id").(string)
-		// if !ok {
-		// 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		// 	return
-		// }
 
 		userID := fmt.Sprintf("%d", rand.Intn(1000000))
 
@@ -264,11 +261,11 @@ func main() {
 		json.NewEncoder(w).Encode(res)
 	})
 
-	mux.HandleFunc("GET /faq", subDomainMiddleware(faqHandler))
+	mux.HandleFunc("GET /{id}/faq", subDomainMiddleware(faqHandler))
 
-	mux.HandleFunc("POST /faq", subDomainMiddleware(getTitleHandler))
+	mux.HandleFunc("POST /{id}/faq", subDomainMiddleware(getTitleHandler))
 
-	mux.HandleFunc("POST /bedrock", subDomainMiddleware((bedrockHandler)))
+	mux.HandleFunc("POST /{id}/bedrock", subDomainMiddleware((bedrockHandler)))
 
 	mux.HandleFunc("GET /", subDomainMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Hello, world!")
