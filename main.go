@@ -26,6 +26,7 @@ import (
 	"github.com/yamato0211/tsumaziro-faq-server/db/model"
 	cfg "github.com/yamato0211/tsumaziro-faq-server/pkg/config"
 	connector "github.com/yamato0211/tsumaziro-faq-server/pkg/db"
+	"github.com/yamato0211/tsumaziro-faq-server/pkg/firebase"
 )
 
 const (
@@ -133,11 +134,11 @@ func main() {
 	dbCfg := cfg.NewDBConfig()
 	db := connector.NewMySQLConnector(dbCfg)
 
-	// fbCfg := cfg.NewFirebaseConfig()
-	// fc, err := firebase.NewFirebaseAuthApp(context.Background(), fbCfg)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	fbCfg := cfg.NewFirebaseConfig()
+	fc, err := firebase.NewFirebaseAuthApp(context.Background(), fbCfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	subDomainMiddleware := NewSubDomainMiddelware()
 
@@ -322,7 +323,7 @@ func main() {
 
 	mux.HandleFunc("POST /{id}/faq", subDomainMiddleware(getTitleHandler))
 
-	mux.HandleFunc("POST /account", createAccountHandler)
+	mux.HandleFunc("POST /account", NewAuthMiddelware(fc)(createAccountHandler))
 
 	mux.HandleFunc("POST /{id}/bedrock", subDomainMiddleware((bedrockHandler)))
 
