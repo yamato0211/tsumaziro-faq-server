@@ -181,7 +181,7 @@ func main() {
 			http.Error(w, "Not Found Sub Domain", http.StatusNotFound)
 			return
 		}
-		var account *model.Account
+		var account model.Account
 		if err := db.DB.NewSelect().Model((*model.Account)(nil)).Where("id = ?", subDomain).Scan(r.Context(), &account); err != nil {
 			log.Println("Not Found Sub Domain User: ", err)
 			http.Error(w, "Not Found Sub Domain User: "+err.Error(), http.StatusNotFound)
@@ -209,7 +209,7 @@ func main() {
 			http.Error(w, "Not Found Sub Domain", http.StatusNotFound)
 			return
 		}
-		var account *model.Account
+		var account model.Account
 		if err := db.DB.NewSelect().Model((*model.Account)(nil)).Where("id = ?", subDomain).Scan(r.Context(), &account); err != nil {
 			log.Println("Not Found Sub Domain User: ", err)
 			http.Error(w, "Not Found Sub Domain User: "+err.Error(), http.StatusNotFound)
